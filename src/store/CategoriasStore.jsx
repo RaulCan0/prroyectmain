@@ -14,16 +14,37 @@ export const useCategoriasStore = create((set, get) => ({
   },
 
   // Mostrar categorías
-  mostrarcategorias: async () => {
+  mostrarcategorias: async (searchTerm = "") => {
     try {
       console.log("Mostrando categorías...");
-      const response = await MostrarCategorias(); 
-
+      
+      // Call your API function to get all categories
+      let response = await MostrarCategorias(); // Change const to let
+      console.log(searchTerm);
+      
+      response.forEach(item => {
+        if (item.category_name.toLowerCase().includes(searchTerm) || item.description.toLowerCase().includes(searchTerm)) {
+          console.log("Item:", JSON.stringify({
+            category_name: item.category_name,
+            description: item.description
+          }, null, 2));
+        }
+      });
+      
+      
+      // Filter categories based on searchTerm (case insensitive)
+      if (searchTerm) {
+        response = response.filter(item =>
+          (item.category_name.toLowerCase().includes(searchTerm) || 
+           item.description.toLowerCase().includes(searchTerm))
+        );
+      }      
+  
       set({
         datacategorias: response,
         categoriasItemSelect: response.length > 0 ? response[0] : null,
       });
-
+  
       console.log("Categorías obtenidas:", response);
       return response;
     } catch (error) {
@@ -31,6 +52,7 @@ export const useCategoriasStore = create((set, get) => ({
       throw new Error("No se pudieron obtener las categorías.");
     }
   },
+  
 
   // Agregar una nueva categoría
   agregarCategoria: async (category_name, description) => {

@@ -4,9 +4,10 @@ import { CategoriasTemplate, SpinnerLoader, useCategoriasStore } from "../index"
 export function Categorias() {
   const { mostrarcategorias, datacategorias, buscarcategorias, buscador } = useCategoriasStore();
 
+  // Pass the buscador state to the mostrarcategorias function
   const { isLoading: isLoadingCategorias, error: errorCategorias, data: dataCategorias } = useQuery({
-    queryKey: ["mostrar categorias"],
-    queryFn: mostrarcategorias,
+    queryKey: ["mostrar categorias", buscador],
+    queryFn: () => mostrarcategorias(buscador),  // Pass the search term here
   });
 
   const { data: buscarData, isLoading: isLoadingBuscar } = useQuery({
@@ -28,6 +29,7 @@ export function Categorias() {
     return <span>Error al cargar categorías</span>;
   }
 
+  // Use the filtered categories or fallback to the full list
   const categoriasData = buscarData || dataCategorias || datacategorias;
 
   if (!categoriasData || categoriasData.length === 0) {
