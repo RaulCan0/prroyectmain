@@ -1,11 +1,5 @@
 import { create } from "zustand";
-import {
-  BuscarCategorias,
-  EditarCategorias,
-  EliminarCategorias,
-  InsertarCategorias,
-  MostrarCategorias,
-} from "../index";
+import { MostrarCategorias, agregarCategoria, editarCategoria, eliminarCategoria } from "../index";
 
 export const useCategoriasStore = create((set, get) => ({
   // Estado inicial
@@ -20,13 +14,12 @@ export const useCategoriasStore = create((set, get) => ({
   },
 
   // Mostrar categorías
-  mostrarcategorias: async (p = {}) => {
+  mostrarcategorias: async () => {
     try {
-      console.log("Mostrando categorías con parámetros:", p);
-      const response = await MostrarCategorias(p);
+      console.log("Mostrando categorías...");
+      const response = await MostrarCategorias(); 
 
       set({
-        parametros: p,
         datacategorias: response,
         categoriasItemSelect: response.length > 0 ? response[0] : null,
       });
@@ -39,71 +32,76 @@ export const useCategoriasStore = create((set, get) => ({
     }
   },
 
-  // Seleccionar una categoría específica
-  selectcategorias: (categoria) => {
-    console.log("Seleccionando categoría:", categoria);
-    set({ categoriasItemSelect: categoria });
-  },
-
-  // Insertar una categoría
-  insertarcategorias: async (categoria) => {
+  // Agregar una nueva categoría
+  agregarCategoria: async (category_name, description) => {
     try {
-      console.log("Insertando categoría:", categoria);
-      await InsertarCategorias(categoria);
-      console.log("Categoría insertada correctamente.");
+      const result = await agregarCategoria(category_name, description); // Call the function to add category
 
-      // Actualizar categorías tras insertar
-      const { mostrarcategorias, parametros } = get();
-      await mostrarcategorias(parametros);
+      if (result.success) {
+        // Update the categories list after adding the new category
+/*         set((state) => ({
+          datacategorias: [...state.datacategorias, result.data[0]], // Add the new category to the state
+          categoriasItemSelect: result.data[0], // Select the newly added category
+        })); */
+
+        console.log("Categoría añadida exitosamente:", result.data);
+        return result.data; // Return the added category
+      } else {
+        console.error("Error al agregar categoría:", result.message);
+        return null;
+      }
     } catch (error) {
-      console.error("Error al insertar categoría:", error);
-      throw new Error("No se pudo insertar la categoría.");
+      console.error("Error al agregar categoría:", error);
+      throw new Error("No se pudo agregar la categoría.");
     }
   },
-
-  // Eliminar una categoría
-  eliminarcategorias: async (idCategoria) => {
+  editarCategoria: async (id, category_name, description) => {
     try {
-      console.log("Eliminando categoría con ID:", idCategoria);
-      await EliminarCategorias(idCategoria);
-      console.log("Categoría eliminada correctamente.");
+      const result = await editarCategoria(id, category_name, description); // Call the function to edit category
 
-      // Actualizar categorías tras eliminar
-      const { mostrarcategorias, parametros } = get();
-      await mostrarcategorias(parametros);
-    } catch (error) {
-      console.error("Error al eliminar categoría:", error);
-      throw new Error("No se pudo eliminar la categoría.");
-    }
-  },
+      if (result.success) {
+        // Update the categories list with the updated category
+/*         set((state) => ({
+          datacategorias: state.datacategorias.map((cat) =>
+            cat.id === id ? { ...cat, category_name, description } : cat
+          ),
+          categoriasItemSelect: { ...state.categoriasItemSelect, category_name, description }, // Update selected category
+        })); */
 
-  // Editar una categoría
-  editarcategorias: async (categoria) => {
-    try {
-      console.log("Editando categoría:", categoria);
-      await EditarCategorias(categoria);
-      console.log("Categoría editada correctamente.");
-
-      // Actualizar categorías tras editar
-      const { mostrarcategorias, parametros } = get();
-      await mostrarcategorias(parametros);
+        console.log("Categoría editada exitosamente:", result.data);
+        return result.data; // Return the updated category
+      } else {
+        console.error("Error al editar categoría:", result.message);
+        return null;
+      }
     } catch (error) {
       console.error("Error al editar categoría:", error);
       throw new Error("No se pudo editar la categoría.");
     }
   },
 
-  // Buscar categorías por filtro
-  buscarcategorias: async (filtro) => {
+  eliminarCategoria: async (data) => {
+    //id = parseInt(id);
+    console.log("Eliminar categoría: ", data.id);
     try {
-      console.log("Buscando categorías con filtro:", filtro);
-      const response = await BuscarCategorias(filtro);
-      set({ datacategorias: response });
+      const result = await eliminarCategoria(data.id); // Call the function to delete category
 
-      console.log("Resultados de búsqueda:", response);
+      if (result.success) {
+        // Update the categories list after deletion
+/*         set((state) => ({
+          datacategorias: state.datacategorias.filter((cat) => cat.category_id !== id),
+          categoriasItemSelect: state.datacategorias.length > 1 ? state.datacategorias[0] : null, // Update selected category after deletion
+        })); */
+
+        console.log("Categoría eliminada exitosamente:", result.data);
+        return result.data; // Return the deleted category
+      } else {
+        console.error("Error al eliminar categoría:", result.message);
+        return null;
+      }
     } catch (error) {
-      console.error("Error al buscar categorías:", error);
-      throw new Error("No se pudieron buscar las categorías.");
+      console.error("Error al eliminar categoría:", error);
+      throw new Error("No se pudo eliminar la categoría.");
     }
   },
 }));

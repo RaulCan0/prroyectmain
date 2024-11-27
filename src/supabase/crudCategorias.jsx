@@ -1,29 +1,57 @@
-// src/crudCategorias.js
+import { supabase } from "../index";
 
-export const MostrarCategorias = async (id) => {
-    console.log("MostrarCategorias ejecutada con ID:", id);
-    // Implementa tu lógica aquí
-    return [{ id, nombre: "Categoría de ejemplo" }];
-  };
-  
-  export const BuscarCategorias = async (nombre) => {
-    console.log("BuscarCategorias ejecutada con nombre:", nombre);
-    // Implementa tu lógica aquí
-    return [{ id: 1, nombre }];
-  };
-  
-  export const EditarCategorias = async (id, nombre, descripcion) => {
-    console.log(`EditarCategorias ejecutada con ID: ${id}, nombre: ${nombre}, descripción: ${descripcion}`);
-    // Implementa tu lógica aquí
-  };
-  
-  export const EliminarCategorias = async (id) => {
-    console.log("EliminarCategorias ejecutada con ID:", id);
-    // Implementa tu lógica aquí
-  };
-  
-  export const InsertarCategorias = async (categoria) => {
-    console.log("InsertarCategorias ejecutada con datos:", categoria);
-    // Implementa tu lógica aquí
-  };
-  
+export async function MostrarCategorias() {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*'); 
+
+  if (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+
+  return data;
+}
+
+export async function agregarCategoria(category_name, description) {
+  const { data, error } = await supabase
+    .from('categories')
+    .insert([
+      { category_name, description } // Insert the new category with the provided fields
+    ]);
+
+  if (error) {
+    console.error("Error adding category:", error);
+    return { success: false, message: "Failed to add category" };
+  }
+
+  return { success: true, data }; // Return the inserted data if successful
+}
+
+export async function editarCategoria(id, category_name, description) {
+  const { data, error } = await supabase
+    .from('categories')
+    .update({ category_name, description })
+    .eq('category_id', id); // Ensuring we update the category with the matching ID
+
+  if (error) {
+    console.error("Error updating category:", error);
+    return { success: false, message: "Failed to update category" };
+  }
+
+  return { success: true, data }; // Return the updated data
+}
+
+export async function eliminarCategoria(id) {
+  const { data, error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('category_id', id); // Ensuring we delete the category with the matching ID
+
+  if (error) {
+    console.error("Error deleting category:", error);
+    return { success: false, message: "Failed to delete category" };
+  }
+
+  return { success: true, data }; // Return the deleted data
+}

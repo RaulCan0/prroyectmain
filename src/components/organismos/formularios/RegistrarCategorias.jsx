@@ -1,48 +1,56 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import styled from "styled-components";
 import { v } from "../../../styles/variables";
 import {
   InputText,
   Btnsave,
-  ConvertirCapitalize,
   useCategoriasStore,
 } from "../../../index";
 import { useForm } from "react-hook-form";
-import { CirclePicker } from "react-color";
 
 export function RegistrarCategorias({ onClose, dataSelect, accion }) {
-  const [currentColor, setColor] = useState("#F44336");
-  const { insertarcategorias, editarcategorias } = useCategoriasStore();
+  console.log(accion);
+  const { agregarCategoria, editarCategoria } = useCategoriasStore(); // Call both functions from the store
   const {
     register,
     formState: { errors },
     handleSubmit,
   } = useForm();
 
-  const elegirColor = (color) => {
-    setColor(color.hex);
-  };
+  // Memoize dataSelect to prevent re-renders if it doesn't change
+  const memoizedData = useMemo(() => {
+    return {
+      category_name: dataSelect?.category_name || "",
+      description: dataSelect?.description || "",
+    };
+  }, [dataSelect]);
 
+  // Function to insert or edit a category
   async function insertar(data) {
+    console.log(data);
+    console.log(accion);
+    console.log("ID: " +dataSelect.category_id);
     const payload = {
-      descripcion: ConvertirCapitalize(data.nombre),
-      color: currentColor,
+      category_name: data.nombre, // category_name instead of descripcion
+      description: data.descripcion || "", // We also pass description as part of the data
     };
 
-    if (accion === "Editar") {
-      payload.id = dataSelect.id; // Solo agregamos el ID si es edición
-      await editarcategorias(payload);
-    } else {
-      await insertarcategorias(payload);
+    if (accion == "Nuevo") {
+      // If adding a new category
+       const newCategory = await agregarCategoria(payload.category_name, payload.description);
+      if (newCategory) {
+        console.log("Categoría añadida:", newCategory);
+      } 
+    } else if (accion == "Editar") {
+      // If editing an existing category
+      const updatedCategory = await editarCategoria(dataSelect.category_id, payload.category_name, payload.description);
+      if (updatedCategory) {
+        console.log("Categoría editada:", updatedCategory);
+      }
     }
-    onClose();
-  }
 
-  useEffect(() => {
-    if (accion === "Editar") {
-      setColor(dataSelect.color);
-    }
-  }, [accion, dataSelect]);
+    onClose(); // Close the modal after the operation
+  }
 
   return (
     <Container>
@@ -50,12 +58,9 @@ export function RegistrarCategorias({ onClose, dataSelect, accion }) {
         <div className="headers">
           <section>
             <h1>
-              {accion === "Editar"
-                ? "Editar categoría"
-                : "Registrar nueva categoría"}
+              {accion === "Editar" ? "Editar categoría" : "Registrar nueva categoría"}
             </h1>
           </section>
-
           <section>
             <span onClick={onClose}>x</span>
           </section>
@@ -67,27 +72,31 @@ export function RegistrarCategorias({ onClose, dataSelect, accion }) {
               <InputText icono={<v.iconomarca />}>
                 <input
                   className="form__field"
-                  defaultValue={dataSelect?.descripcion || ""}
+                  defaultValue={memoizedData.category_name}
                   type="text"
                   placeholder=""
-                  {...register("nombre", {
-                    required: true,
-                  })}
+                  {...register("nombre", { required: true })}
                 />
                 <label className="form__label">Categoría</label>
                 {errors.nombre?.type === "required" && <p>Campo requerido</p>}
               </InputText>
             </article>
-            <article className="colorContainer">
-              <CirclePicker onChange={elegirColor} color={currentColor} />
+            <article>
+              <InputText icono={<v.iconomarca />}>
+                <input
+                  className="form__field"
+                  defaultValue={memoizedData.description} // Default value for description
+                  type="text"
+                  placeholder=""
+                  {...register("descripcion", { required: true })}
+                />
+                <label className="form__label">Descripción</label>
+                {errors.descripcion?.type === "required" && <p>Campo requerido</p>}
+              </InputText>
             </article>
 
             <div className="btnguardarContent">
-              <Btnsave
-                icono={<v.iconoguardar />}
-                titulo="Guardar"
-                bgcolor="#ef552b"
-              />
+              <Btnsave icono={<v.iconoguardar />} titulo="Guardar" bgcolor="#ef552b" />
             </div>
           </section>
         </form>
@@ -133,6 +142,7 @@ const Container = styled.div`
         cursor: pointer;
       }
     }
+
     .formulario {
       section {
         gap: 20px;

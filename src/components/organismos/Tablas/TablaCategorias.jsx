@@ -10,7 +10,8 @@ import styled from "styled-components";
 import { Colorcontent, ContentAccionesTabla, Paginacion, useCategoriasStore, v } from "../../../index";
 import Swal from "sweetalert2";
 import { FaArrowsAltV } from "react-icons/fa";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
 export function TablaCategorias({
   data,
   SetopenRegistro,
@@ -18,14 +19,14 @@ export function TablaCategorias({
   setAccion,
 }) {
   const [pagina, setPagina] = useState(1);
-  const { eliminarcategorias } = useCategoriasStore();
+  const { eliminarCategoria } = useCategoriasStore();
 
   const editar = (data) => {
     if (data.descripcion === "General") {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Esta registro no se permite modificar ya que es valor por defecto.",
+        text: "Este registro no se permite modificar ya que es valor por defecto.",
       });
       return;
     }
@@ -53,25 +54,37 @@ export function TablaCategorias({
       confirmButtonText: "Si, eliminar",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        await eliminarcategorias({ id: p.id });
+        
+        await eliminarCategoria({ id: p.category_id });
       }
     });
   };
 
-  const columns = [
+  const [updateFlag, setUpdateFlag] = useState(false);
+
+  const handleEditar = (row) => {
+    editar(row); // Call the original editar function
+    setUpdateFlag((prev) => !prev); // Trigger re-evaluation of useMemo
+  };
+
+  const columns = useMemo(() => [
     {
-      accessorKey: "descripcion",
-      header: "Descripcion",
-      cell: (info) => <td data-title="Descripcion" className="ContentCell">
-        <span>{info.getValue()}</span>
-      </td>
+      accessorKey: "category_name",  // Display the category name
+      header: "Nombre",
+      cell: (info) => (
+        <td data-title="Nombre" className="ContentCell">
+          <span>{info.getValue()}</span>
+        </td>
+      ),
     },
     {
-      accessorKey: "color",
-      header: "Color",
-      cell: (info) => <td data-title="Color" className="ContentCell">
-        <Colorcontent $color={info.getValue()} $alto="25px" $ancho="25px"/>
-      </td>
+      accessorKey: "description",  // Display the description
+      header: "Descripción",
+      cell: (info) => (
+        <td data-title="Descripción" className="ContentCell">
+          <span>{info.getValue()}</span>
+        </td>
+      ),
     },
     {
       accessorKey: "acciones",
@@ -80,13 +93,14 @@ export function TablaCategorias({
       cell: (info) => (
         <td className="ContentCell">
           <ContentAccionesTabla
-            funcionEditar={() => editar(info.row.original)}
+            printer={info.row.original}
+            funcionEditar={() => handleEditar(info.row.original)}
             funcionEliminar={() => eliminar(info.row.original)}
           />
         </td>
       ),
     },
-  ];
+  ], [updateFlag]);
 
   const table = useReactTable({
     data,
