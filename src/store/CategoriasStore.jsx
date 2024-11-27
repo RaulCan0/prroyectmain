@@ -38,12 +38,7 @@ export const useCategoriasStore = create((set, get) => ({
       const result = await agregarCategoria(category_name, description); // Call the function to add category
 
       if (result.success) {
-        // Update the categories list after adding the new category
-/*         set((state) => ({
-          datacategorias: [...state.datacategorias, result.data[0]], // Add the new category to the state
-          categoriasItemSelect: result.data[0], // Select the newly added category
-        })); */
-
+        window.location.reload();
         console.log("Categoría añadida exitosamente:", result.data);
         return result.data; // Return the added category
       } else {
@@ -60,14 +55,7 @@ export const useCategoriasStore = create((set, get) => ({
       const result = await editarCategoria(id, category_name, description); // Call the function to edit category
 
       if (result.success) {
-        // Update the categories list with the updated category
-/*         set((state) => ({
-          datacategorias: state.datacategorias.map((cat) =>
-            cat.id === id ? { ...cat, category_name, description } : cat
-          ),
-          categoriasItemSelect: { ...state.categoriasItemSelect, category_name, description }, // Update selected category
-        })); */
-
+        window.location.reload();
         console.log("Categoría editada exitosamente:", result.data);
         return result.data; // Return the updated category
       } else {
@@ -87,12 +75,7 @@ export const useCategoriasStore = create((set, get) => ({
       const result = await eliminarCategoria(data.id); // Call the function to delete category
 
       if (result.success) {
-        // Update the categories list after deletion
-/*         set((state) => ({
-          datacategorias: state.datacategorias.filter((cat) => cat.category_id !== id),
-          categoriasItemSelect: state.datacategorias.length > 1 ? state.datacategorias[0] : null, // Update selected category after deletion
-        })); */
-
+        window.location.reload();
         console.log("Categoría eliminada exitosamente:", result.data);
         return result.data; // Return the deleted category
       } else {
